@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import "./App.css";
@@ -14,8 +14,42 @@ const languages = [
 function App() {
   const [clicks, setClicks] = useState(0);
   const [langMenuShown, setLangMenuShown] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  // useEffect(() => {
+  //   const getEnabled = async () => {
+  //     const data = await fetch("http://localhost:3000/system/identify").then(
+  //       (res) => res.json()
+  //     );
+  //     setIsEnabled(data);
+  //   };
+
+  //   getEnabled().catch((err) => console.error(err));
+  // }, []);
 
   const { t } = useTranslation();
+
+  const handleEnableDevice = async () => {
+    const data = { identify: { enabled: !isEnabled } };
+    await fetch("http://localhost:3000/system/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`${res.status} ${res.statusText}`);
+        }
+        console.log(res);
+      })
+      .then((res) => {
+        console.log(res);
+        setIsEnabled(data.identify.enabled);
+      })
+      .catch((err) => console.error(err));
+  };
 
   const handleClick = () => {
     setClicks(() => clicks + 1);
@@ -54,6 +88,11 @@ function App() {
         <h2>{t("key")}</h2>
         <p>{t("clicks", { clicks })}</p>
         <button onClick={handleClick}>{t("click_me")}</button>
+      </div>
+      <div>
+        <button onClick={handleEnableDevice}>
+          {isEnabled ? "Disable device" : "Enable device"}
+        </button>
       </div>
     </div>
   );
